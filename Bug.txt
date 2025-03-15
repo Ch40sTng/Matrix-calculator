@@ -1,0 +1,1 @@
+1. swap function (bug) (A B size不同會出問題)
