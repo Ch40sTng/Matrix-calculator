@@ -22,28 +22,55 @@ class MatrixCalculator:
         self.A_rows_var = tk.IntVar(value=2)
         self.A_cols_var = tk.IntVar(value=2)
 
-        self.A_row_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.A_rows_var, width=5, font=("Arial", 11), command=self.create_matrix_entries, name="a_row_spin")
-        self.A_row_spin.grid(row=0, column=1)
+        # input
+        self.A_row_entry = ttk.Entry(size_frame, width=8, font=("Arial", 11))
+        self.A_row_entry.grid(row=0, column=1)
+
         ttk.Label(size_frame, text=" x ").grid(row=0, column=2)
-        self.A_col_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.A_cols_var, width=5, font=("Arial", 11), command=self.create_matrix_entries, name="a_col_spin")
-        self.A_col_spin.grid(row=0, column=3)
+
+        self.A_col_entry = ttk.Entry(size_frame, width=8, font=("Arial", 11))
+        self.A_col_entry.grid(row=0, column=3)
+
+        self.A_row_entry.bind("<FocusIn>", self.clear_placeholder)
+        self.A_col_entry.bind("<FocusIn>", self.clear_placeholder)
+        self.A_row_entry.bind("<FocusOut>", lambda e: self.set_placeholder(self.A_row_entry, "A_row"))
+        self.A_col_entry.bind("<FocusOut>", lambda e: self.set_placeholder(self.A_col_entry, "A_col"))
 
         # Setting B size
         ttk.Label(size_frame, text="Matrix B (row x col)： ").grid(row=1, column=0)
         self.B_rows_var = tk.IntVar(value=2)
         self.B_cols_var = tk.IntVar(value=2)
 
-        self.B_row_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.B_rows_var, width=5, font=("Arial", 11), command=self.create_matrix_entries, name="b_row_spin")
-        self.B_row_spin.grid(row=1, column=1)
+        # input
+        self.B_row_entry = ttk.Entry(size_frame, width=8, font=("Arial", 11))
+        self.B_row_entry.grid(row=1, column=1)
+
         ttk.Label(size_frame, text=" x ").grid(row=1, column=2)
-        self.B_col_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.B_cols_var, width=5, font=("Arial", 11), command=self.create_matrix_entries, name="b_col_spin")
-        self.B_col_spin.grid(row=1, column=3)
+
+        self.B_col_entry = ttk.Entry(size_frame, width=8, font=("Arial", 11))
+        self.B_col_entry.grid(row=1, column=3)
+
+        self.B_row_entry.bind("<FocusIn>", self.clear_placeholder)
+        self.B_col_entry.bind("<FocusIn>", self.clear_placeholder)
+        self.B_row_entry.bind("<FocusOut>", lambda e: self.set_placeholder(self.B_row_entry, "B_row"))
+        self.B_col_entry.bind("<FocusOut>", lambda e: self.set_placeholder(self.B_col_entry, "B_col"))
+
+        # confirm A
+        self.confirm_button = ttk.Button(size_frame, text="Confirm A", command=self.update_matrixA, width=10)
+        self.confirm_button.grid(row=0, column=4, padx=5)
+        self.set_placeholder(self.A_row_entry, "A_row")
+        self.set_placeholder(self.A_col_entry, "A_col")
+
+        # confirm B
+        self.confirm_button = ttk.Button(size_frame, text="Confirm B", command=self.update_matrixB, width=10)
+        self.confirm_button.grid(row=1, column=4, padx=5)
+        self.set_placeholder(self.B_row_entry, "B_row")
+        self.set_placeholder(self.B_col_entry, "B_col")
 
         ttk.Label(size_frame, text="(Maximum size = 5 x 5)").grid(row=2, column=0, columnspan=4)
 
         # swap
-        swap_btn = ttk.Button(size_frame, text="Swap A ⇄ B", command=self.swap, name="swap_btn")
-        swap_btn.grid(row=0, column=4, rowspan=2, padx=10)
+        ttk.Button(size_frame, text="Swap A ⇄ B", command=self.swap).grid(row=0, column=5, rowspan=2, padx=10)
 
         # input
         self.matrix_frame = ttk.Frame(root)
@@ -71,13 +98,21 @@ class MatrixCalculator:
 
         # Multiply by factor
         ttk.Button(btn_frame, text="Multiply by", command=self.mul_factor).grid(row=2, column=2)
-        self.factor_entry = ttk.Entry(btn_frame, width=5)
+        self.factor_entry = ttk.Entry(btn_frame, width=5, foreground="gray")
         self.factor_entry.grid(row=2, column=3,sticky="w")
+        self.factor_entry.insert(0, "MUL")
+        self.factor_entry.bind("<FocusIn>", self.clear_placeholder)
+        self.factor_entry.bind("<FocusOut>", lambda e: self.set_placeholder(self.factor_entry, "MUL"))
+
         
         # Power function
         ttk.Button(btn_frame, text="The Power of", command=self.power).grid(row=3, column=2)
-        self.power_entry = ttk.Entry(btn_frame, width=5)
+        self.power_entry = ttk.Entry(btn_frame, width=5, foreground="gray")
         self.power_entry.grid(row=3, column=3,sticky="w")
+        self.power_entry.insert(0, "EXP")
+        self.power_entry.bind("<FocusIn>", self.clear_placeholder)
+        self.power_entry.bind("<FocusOut>", lambda e: self.set_placeholder(self.power_entry, "EXP"))
+
          # result
         self.result_label = ttk.Label(root, text="Result:", font=("Arial", 12, "bold"))
         self.result_label.pack()
@@ -95,6 +130,43 @@ class MatrixCalculator:
         self.store_B_btn.grid(row=0, column=1, pady=10)
 
 # ------------------------------------------------function---------------------------------------------------------------
+    def set_placeholder(self, entry, text):
+        if not entry.get():
+            entry.insert(0, text)
+            entry.config(foreground="gray")
+
+    def clear_placeholder(self, event):
+        if event.widget.get().startswith(("A", "B", "E", "F")):
+            event.widget.delete(0, tk.END)
+            event.widget.config(foreground="black")
+
+    def update_matrixA(self):
+        try:
+            rows_a = int(self.A_row_entry.get())
+            cols_a = int(self.A_col_entry.get())
+
+            if all(1 <= x <= 5 for x in [rows_a, cols_a]):
+                self.A_rows_var.set(rows_a)
+                self.A_cols_var.set(cols_a)
+                self.create_matrix_entries()
+            else:
+                messagebox.showerror("Error", "Rows and Columns must be between 1 and 5")
+        except ValueError:
+            messagebox.showerror("Error", "Please enter valid integers")
+
+    def update_matrixB(self):
+        try:
+            rows_b = int(self.B_row_entry.get())
+            cols_b = int(self.B_col_entry.get())
+
+            if all(1 <= x <= 5 for x in [rows_b, cols_b]):
+                self.B_rows_var.set(rows_b)
+                self.B_cols_var.set(cols_b)
+                self.create_matrix_entries()
+            else:
+                messagebox.showerror("Error", "Rows and Columns must be between 1 and 5")
+        except ValueError:
+            messagebox.showerror("Error", "Please enter valid integers")
 
     def create_matrix_entries(self):
         for widget in self.matrix_frame.winfo_children():
@@ -111,8 +183,13 @@ class MatrixCalculator:
         for i in range(A_rows):
             row_entries = []
             for j in range(A_cols):
-                entry = ttk.Entry(self.matrix_frame, width=5, font=("Arial", 11), name=f"a({i},{j})")
-                entry.grid(row=i + 1, column=j)
+                entry = ttk.Entry(self.matrix_frame, width=6, font=("Arial", 11), foreground="gray")
+                entry.grid(row=i + 1, column=j, padx=2, pady=2)
+
+                entry.insert(0, f"A{i+1}{j+1}")
+                entry.bind("<FocusIn>", self.clear_placeholder)
+                entry.bind("<FocusOut>", lambda e: self.set_placeholder(entry, f"A{i+1}{j+1}"))
+
                 row_entries.append(entry)
             self.entries1.append(row_entries)
 
@@ -123,8 +200,13 @@ class MatrixCalculator:
         for i in range(B_rows):
             row_entries = []
             for j in range(B_cols):
-                entry = ttk.Entry(self.matrix_frame, width=5, font=("Arial", 11), name=f"b({i},{j})")
-                entry.grid(row=i + A_rows + 3, column=j)
+                entry = ttk.Entry(self.matrix_frame, width=6, font=("Arial", 11), foreground="gray")
+                entry.grid(row=i+A_rows+3, column=j, padx=2, pady=2)
+
+                entry.insert(0, f"B{i+1}{j+1}")
+                entry.bind("<FocusIn>", self.clear_placeholder)
+                entry.bind("<FocusOut>", lambda e: self.set_placeholder(entry, f"B{i+1}{j+1}"))
+
                 row_entries.append(entry)
             self.entries2.append(row_entries)
 
