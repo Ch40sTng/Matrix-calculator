@@ -16,42 +16,34 @@ class MatrixCalculator:
         
         size_frame = ttk.Frame(root)
         size_frame.pack(pady=10)
-        
-        # nameList
-        self.widgetsList = {}
 
         # Setting A size
         ttk.Label(size_frame, text="Matrix A (row x col)： ").grid(row=0, column=0)
         self.A_rows_var = tk.IntVar(value=2)
         self.A_cols_var = tk.IntVar(value=2)
 
-        self.A_row_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.A_rows_var, width=5, font=("Arial", 11), command=self.create_matrix_entries)
+        self.A_row_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.A_rows_var, width=5, font=("Arial", 11), command=self.create_matrix_entries, name="a_row_spin")
         self.A_row_spin.grid(row=0, column=1)
-        self.namedWidget(self.A_row_spin, "A_row_spin")
         ttk.Label(size_frame, text=" x ").grid(row=0, column=2)
-        self.A_col_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.A_cols_var, width=5, font=("Arial", 11), command=self.create_matrix_entries)
+        self.A_col_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.A_cols_var, width=5, font=("Arial", 11), command=self.create_matrix_entries, name="a_col_spin")
         self.A_col_spin.grid(row=0, column=3)
-        self.namedWidget(self.A_row_spin, "A_col_spin")
 
         # Setting B size
         ttk.Label(size_frame, text="Matrix B (row x col)： ").grid(row=1, column=0)
         self.B_rows_var = tk.IntVar(value=2)
         self.B_cols_var = tk.IntVar(value=2)
 
-        self.B_row_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.B_rows_var, width=5, font=("Arial", 11), command=self.create_matrix_entries)
+        self.B_row_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.B_rows_var, width=5, font=("Arial", 11), command=self.create_matrix_entries, name="b_row_spin")
         self.B_row_spin.grid(row=1, column=1)
-        self.namedWidget(self.B_row_spin, "B_row_spin")
         ttk.Label(size_frame, text=" x ").grid(row=1, column=2)
-        self.B_col_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.B_cols_var, width=5, font=("Arial", 11), command=self.create_matrix_entries)
+        self.B_col_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.B_cols_var, width=5, font=("Arial", 11), command=self.create_matrix_entries, name="b_col_spin")
         self.B_col_spin.grid(row=1, column=3)
-        self.namedWidget(self.B_col_spin, "B_col_spin")
 
         ttk.Label(size_frame, text="(Maximum size = 5 x 5)").grid(row=2, column=0, columnspan=4)
 
         # swap
-        swap_btn = ttk.Button(size_frame, text="Swap A ⇄ B", command=self.swap)
+        swap_btn = ttk.Button(size_frame, text="Swap A ⇄ B", command=self.swap, name="swap_btn")
         swap_btn.grid(row=0, column=4, rowspan=2, padx=10)
-        self.namedWidget(swap_btn, "swap_btn")
 
         # input
         self.matrix_frame = ttk.Frame(root)
@@ -104,10 +96,6 @@ class MatrixCalculator:
 
 # ------------------------------------------------function---------------------------------------------------------------
 
-    def namedWidget(self, widget, name):
-        widget._name = name
-        self.widgetsList[name] = widget
-    
     def create_matrix_entries(self):
         for widget in self.matrix_frame.winfo_children():
             widget.destroy()
@@ -123,9 +111,8 @@ class MatrixCalculator:
         for i in range(A_rows):
             row_entries = []
             for j in range(A_cols):
-                entry = ttk.Entry(self.matrix_frame, width=5, font=("Arial", 11))
+                entry = ttk.Entry(self.matrix_frame, width=5, font=("Arial", 11), name=f"a({i},{j})")
                 entry.grid(row=i + 1, column=j)
-                self.namedWidget(entry, f"entry_a_{i}_{j}")
                 row_entries.append(entry)
             self.entries1.append(row_entries)
 
@@ -136,9 +123,8 @@ class MatrixCalculator:
         for i in range(B_rows):
             row_entries = []
             for j in range(B_cols):
-                entry = ttk.Entry(self.matrix_frame, width=5, font=("Arial", 11),)
+                entry = ttk.Entry(self.matrix_frame, width=5, font=("Arial", 11), name=f"b({i},{j})")
                 entry.grid(row=i + A_rows + 3, column=j)
-                self.namedWidget(entry, f"entry_b_{i}_{j}")
                 row_entries.append(entry)
             self.entries2.append(row_entries)
 
