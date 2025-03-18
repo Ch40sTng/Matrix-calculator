@@ -17,6 +17,9 @@ class MatrixCalculator:
         size_frame = ttk.Frame(root)
         size_frame.pack(pady=10)
         
+        # nameList
+        self.widgetsList = {}
+
         # Setting A size
         ttk.Label(size_frame, text="Matrix A (row x col)： ").grid(row=0, column=0)
         self.A_rows_var = tk.IntVar(value=2)
@@ -24,9 +27,11 @@ class MatrixCalculator:
 
         self.A_row_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.A_rows_var, width=5, font=("Arial", 11), command=self.create_matrix_entries)
         self.A_row_spin.grid(row=0, column=1)
+        self.namedWidget(self.A_row_spin, "A_row_spin")
         ttk.Label(size_frame, text=" x ").grid(row=0, column=2)
         self.A_col_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.A_cols_var, width=5, font=("Arial", 11), command=self.create_matrix_entries)
         self.A_col_spin.grid(row=0, column=3)
+        self.namedWidget(self.A_row_spin, "A_col_spin")
 
         # Setting B size
         ttk.Label(size_frame, text="Matrix B (row x col)： ").grid(row=1, column=0)
@@ -35,14 +40,18 @@ class MatrixCalculator:
 
         self.B_row_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.B_rows_var, width=5, font=("Arial", 11), command=self.create_matrix_entries)
         self.B_row_spin.grid(row=1, column=1)
+        self.namedWidget(self.B_row_spin, "B_row_spin")
         ttk.Label(size_frame, text=" x ").grid(row=1, column=2)
         self.B_col_spin = ttk.Spinbox(size_frame, from_=1, to=5, textvariable=self.B_cols_var, width=5, font=("Arial", 11), command=self.create_matrix_entries)
         self.B_col_spin.grid(row=1, column=3)
+        self.namedWidget(self.B_col_spin, "B_col_spin")
 
         ttk.Label(size_frame, text="(Maximum size = 5 x 5)").grid(row=2, column=0, columnspan=4)
 
         # swap
-        ttk.Button(size_frame, text="Swap A ⇄ B", command=self.swap).grid(row=0, column=4, rowspan=2, padx=10)
+        swap_btn = ttk.Button(size_frame, text="Swap A ⇄ B", command=self.swap)
+        swap_btn.grid(row=0, column=4, rowspan=2, padx=10)
+        self.namedWidget(swap_btn, "swap_btn")
 
         # input
         self.matrix_frame = ttk.Frame(root)
@@ -93,6 +102,12 @@ class MatrixCalculator:
         self.store_B_btn = ttk.Button(store_frame, text="Store to B", command=self.store_to_B, state="disabled")
         self.store_B_btn.grid(row=0, column=1, pady=10)
 
+# ------------------------------------------------function---------------------------------------------------------------
+
+    def namedWidget(self, widget, name):
+        widget._name = name
+        self.widgetsList[name] = widget
+    
     def create_matrix_entries(self):
         for widget in self.matrix_frame.winfo_children():
             widget.destroy()
@@ -110,6 +125,7 @@ class MatrixCalculator:
             for j in range(A_cols):
                 entry = ttk.Entry(self.matrix_frame, width=5, font=("Arial", 11))
                 entry.grid(row=i + 1, column=j)
+                self.namedWidget(entry, f"entry_a_{i}_{j}")
                 row_entries.append(entry)
             self.entries1.append(row_entries)
 
@@ -122,6 +138,7 @@ class MatrixCalculator:
             for j in range(B_cols):
                 entry = ttk.Entry(self.matrix_frame, width=5, font=("Arial", 11),)
                 entry.grid(row=i + A_rows + 3, column=j)
+                self.namedWidget(entry, f"entry_b_{i}_{j}")
                 row_entries.append(entry)
             self.entries2.append(row_entries)
 
@@ -142,7 +159,56 @@ class MatrixCalculator:
                 ea.insert(0, eb_val)
                 eb.delete(0, tk.END)
                 eb.insert(0, ea_val)
-                
+
+    #result function
+    def store_result(self, target):
+        if self.result_matrix is None:
+            return
+        
+        rows, cols = self.result_matrix.shape
+        if target == "A":
+            self.A_rows_var.set(rows)
+            self.A_cols_var.set(cols)
+            self.create_matrix_entries()
+            target_entries = self.entries1
+        else:
+            self.B_rows_var.set(rows)
+            self.B_cols_var.set(cols)
+            self.create_matrix_entries()
+            target_entries = self.entries2
+
+        for i in range(rows):
+            for j in range(cols):
+                target_entries[i][j].delete(0, tk.END)
+                target_entries[i][j].insert(0, str(self.result_matrix[i, j]))
+
+    def store_to_A(self):
+        self.store_result("A")
+
+    def store_to_B(self):
+        self.store_result("B")
+
+    def show_result(self, result, store=True):
+        self.result_text.config(state="normal")
+        self.result_text.delete("1.0", tk.END)
+
+        if isinstance(result, str):
+            result_text = result
+            self.result_matrix = None
+        else:
+            self.result_matrix = result
+            result_text = "\n".join(["  ".join(f"{val:.2f}" for val in row) for row in result])
+
+        self.result_text.insert(tk.END, result_text)
+        self.result_text.config(state="disabled")
+
+        if store and self.result_matrix is not None:
+            self.store_A_btn.config(state="normal")
+            self.store_B_btn.config(state="normal")
+        else:
+            self.store_A_btn.config(state="disabled")
+            self.store_B_btn.config(state="disabled")
+         
     #calulate function
     def add(self):
         A, B = self.get_matrix(self.entries1), self.get_matrix(self.entries2)
@@ -263,55 +329,6 @@ class MatrixCalculator:
         else:
             messagebox.showerror("Error", "Matrix must be square.")
 
-    #result function
-    def store_result(self, target):
-        if self.result_matrix is None:
-            return
-        
-        rows, cols = self.result_matrix.shape
-        if target == "A":
-            self.A_rows_var.set(rows)
-            self.A_cols_var.set(cols)
-            self.create_matrix_entries()
-            target_entries = self.entries1
-        else:
-            self.B_rows_var.set(rows)
-            self.B_cols_var.set(cols)
-            self.create_matrix_entries()
-            target_entries = self.entries2
-
-        for i in range(rows):
-            for j in range(cols):
-                target_entries[i][j].delete(0, tk.END)
-                target_entries[i][j].insert(0, str(self.result_matrix[i, j]))
-
-    def store_to_A(self):
-        self.store_result("A")
-
-    def store_to_B(self):
-        self.store_result("B")
-
-    def show_result(self, result, store=True):
-        self.result_text.config(state="normal")
-        self.result_text.delete("1.0", tk.END)
-
-        if isinstance(result, str):
-            result_text = result
-            self.result_matrix = None  # 清空矩陣結果
-        else:  # 矩陣結果
-            self.result_matrix = result
-            result_text = "\n".join(["  ".join(f"{val:.2f}" for val in row) for row in result])
-
-        self.result_text.insert(tk.END, result_text)
-        self.result_text.config(state="disabled")
-
-        # 控制 Store 按鈕
-        if store and self.result_matrix is not None:
-            self.store_A_btn.config(state="normal")
-            self.store_B_btn.config(state="normal")
-        else:
-            self.store_A_btn.config(state="disabled")
-            self.store_B_btn.config(state="disabled")
 
 root = tk.Tk()
 app = MatrixCalculator(root)
