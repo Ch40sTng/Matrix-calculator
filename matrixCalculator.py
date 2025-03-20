@@ -314,10 +314,18 @@ class MatrixCalculator:
     
     def det(self):
         A = self.get_matrix(self.entries1)
-        if A is not None and A.shape[0] == A.shape[1]:
-            self.show_result(np.linalg.det(A))
-        else:
+        if A is None:
+            return
+
+        if A.shape[0] != A.shape[1]:  
             messagebox.showerror("Error", "This matrix must be square.")
+            return
+
+        try:
+            determinant = np.linalg.det(A)
+            self.show_result(f"{determinant:.2f}", store=False)
+        except np.linalg.LinAlgError:
+            messagebox.showerror("Error", "Failed to compute determinant.")
 
     def trans(self):
         A = self.get_matrix(self.entries1)
