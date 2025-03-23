@@ -73,10 +73,13 @@ class MatrixCalculator:
         ttk.Button(size_frame, text="Swap A ⇄ B", command=self.swap).grid(row=0, column=5, rowspan=2, padx=10)
 
         # input
-        self.matrix_frame = ttk.Frame(root)
-        self.matrix_frame.pack(pady=10)
+        self.matrixA_frame = ttk.Frame(root)
+        self.matrixA_frame.pack(pady=5)
+        self.matrixB_frame = ttk.Frame(root)
+        self.matrixB_frame.pack(pady=5)
 
-        self.create_matrix_entries()
+        self.create_matrixA_entries()
+        self.create_matrixB_entries()
 
         # buttom
         btn_frame = ttk.Frame(root)
@@ -148,7 +151,7 @@ class MatrixCalculator:
             if all(1 <= x <= 5 for x in [rows_a, cols_a]):
                 self.A_rows_var.set(rows_a)
                 self.A_cols_var.set(cols_a)
-                self.create_matrix_entries()
+                self.create_matrixA_entries()
             else:
                 messagebox.showerror("Error", "Rows and Columns must be between 1 and 5")
         except ValueError:
@@ -162,29 +165,26 @@ class MatrixCalculator:
             if all(1 <= x <= 5 for x in [rows_b, cols_b]):
                 self.B_rows_var.set(rows_b)
                 self.B_cols_var.set(cols_b)
-                self.create_matrix_entries()
+                self.create_matrixB_entries()
             else:
                 messagebox.showerror("Error", "Rows and Columns must be between 1 and 5")
         except ValueError:
             messagebox.showerror("Error", "Please enter valid integers")
 
-    def create_matrix_entries(self):
-        for widget in self.matrix_frame.winfo_children():
+    def create_matrixA_entries(self):
+        for widget in self.matrixA_frame.winfo_children():
             widget.destroy()
 
         A_rows, A_cols = self.A_rows_var.get(), self.A_cols_var.get()
-        B_rows, B_cols = self.B_rows_var.get(), self.B_cols_var.get()
 
         self.entries1 = []
-        self.entries2 = []
 
-        # create A
-        ttk.Label(self.matrix_frame, text="Matrix A: ").grid(row=0, column=0, columnspan=A_cols)
+        ttk.Label(self.matrixA_frame, text="Matrix A: ").grid(row=0, column=0, columnspan=A_cols)
         for i in range(A_rows):
             row_entries = []
             for j in range(A_cols):
-                entry = ttk.Entry(self.matrix_frame, width=6, font=("Arial", 11), foreground="gray")
-                entry.grid(row=i + 1, column=j, padx=2, pady=2)
+                entry = ttk.Entry(self.matrixA_frame, width=6, font=("Arial", 11), foreground="gray")
+                entry.grid(row=i+1, column=j, padx=2, pady=2)
 
                 entry.insert(0, f"A{i+1}{j+1}")
                 entry.bind("<FocusIn>", self.clear_placeholder)
@@ -193,15 +193,22 @@ class MatrixCalculator:
                 row_entries.append(entry)
             self.entries1.append(row_entries)
 
-        ttk.Label(self.matrix_frame, text="").grid(row=A_rows + 1, column=0) 
-        
-        # create B
-        ttk.Label(self.matrix_frame, text="Matrix B: ").grid(row=A_rows + 2, column=0, columnspan=max(A_cols, B_cols))
+        ttk.Label(self.matrixA_frame, text="").grid(row=A_rows + 1, column=0)
+
+    def create_matrixB_entries(self):
+        for widget in self.matrixB_frame.winfo_children():
+            widget.destroy()
+
+        B_rows, B_cols = self.B_rows_var.get(), self.B_cols_var.get()
+
+        self.entries2 = []
+
+        ttk.Label(self.matrixB_frame, text="Matrix B: ").grid(row=0, column=0, columnspan=B_cols)
         for i in range(B_rows):
             row_entries = []
             for j in range(B_cols):
-                entry = ttk.Entry(self.matrix_frame, width=6, font=("Arial", 11), foreground="gray")
-                entry.grid(row=i+A_rows+3, column=j, padx=2, pady=2)
+                entry = ttk.Entry(self.matrixB_frame, width=6, font=("Arial", 11), foreground="gray")
+                entry.grid(row=i+1, column=j, padx=2, pady=2)
 
                 entry.insert(0, f"B{i+1}{j+1}")
                 entry.bind("<FocusIn>", self.clear_placeholder)
@@ -218,15 +225,51 @@ class MatrixCalculator:
             messagebox.showerror("Error", "Invalid Input")
             return None
 
-    #swap function (bug) (A B size不同會出問題)
+    #swap function
     def swap(self):
-        for a, b in zip(self.entries1, self.entries2):
-            for ea, eb in zip(a, b):
-                ea_val, eb_val = ea.get(), eb.get()
-                ea.delete(0, tk.END)
-                ea.insert(0, eb_val)
-                eb.delete(0, tk.END)
-                eb.insert(0, ea_val)
+        # get data
+        data_A = [[entry.get().strip() for entry in row] for row in self.entries1]
+        data_B = [[entry.get().strip() for entry in row] for row in self.entries2]
+
+        # get size
+        rows_A, cols_A = self.A_rows_var.get(), self.A_cols_var.get()
+        rows_B, cols_B = self.B_rows_var.get(), self.B_cols_var.get()
+
+        # switch size
+        self.A_rows_var.set(rows_B)
+        self.A_cols_var.set(cols_B)
+        self.B_rows_var.set(rows_A)
+        self.B_cols_var.set(cols_A)
+
+        self.create_matrixA_entries()
+        self.create_matrixB_entries()
+
+        for i in range(min(rows_B, len(self.entries1))):
+            for j in range(min(cols_B, len(self.entries1[i]))):
+                value = data_B[i][j]
+                if value and not value.startswith("B"):
+                    self.entries1[i][j].delete(0, tk.END)
+                    self.entries1[i][j].insert(0, value)
+                    self.entries1[i][j].config(foreground="black")
+
+        for i in range(min(rows_A, len(self.entries2))):
+            for j in range(min(cols_A, len(self.entries2[i]))):
+                value = data_A[i][j]
+                if value and not value.startswith("A"):
+                    self.entries2[i][j].delete(0, tk.END)
+                    self.entries2[i][j].insert(0, value)
+                    self.entries2[i][j].config(foreground="black") 
+
+        self.update_placeholder(self.entries1, "A")
+        self.update_placeholder(self.entries2, "B")
+
+
+    def update_placeholder(self, entries, prefix):
+        for i, row in enumerate(entries):
+            for j, entry in enumerate(row):
+                if not entry.get():
+                    self.set_placeholder(entry, f"{prefix}{i+1}{j+1}")
+
 
     #result function
     def store_result(self, target):
@@ -237,18 +280,19 @@ class MatrixCalculator:
         if target == "A":
             self.A_rows_var.set(rows)
             self.A_cols_var.set(cols)
-            self.create_matrix_entries()
+            self.create_matrixA_entries()
             target_entries = self.entries1
         else:
             self.B_rows_var.set(rows)
             self.B_cols_var.set(cols)
-            self.create_matrix_entries()
+            self.create_matrixB_entries()
             target_entries = self.entries2
 
         for i in range(rows):
             for j in range(cols):
                 target_entries[i][j].delete(0, tk.END)
                 target_entries[i][j].insert(0, str(self.result_matrix[i, j]))
+                target_entries[i][j].config(foreground="black")
 
     def store_to_A(self):
         self.store_result("A")
@@ -291,7 +335,7 @@ class MatrixCalculator:
         A, B = self.get_matrix(self.entries1), self.get_matrix(self.entries2)
         if A is not None and B is not None:
             try:
-                result = A + B
+                result = A - B
                 self.show_result(result)
             except ValueError:
                 messagebox.showerror("Error", "Dimension Error")
