@@ -139,7 +139,7 @@ class MatrixCalculator:
             entry.config(foreground="gray")
 
     def clear_placeholder(self, event):
-        if event.widget.get().startswith(("A", "B", "E", "F")):
+        if event.widget.get().startswith(("A", "B", "E", "F", "M")):
             event.widget.delete(0, tk.END)
             event.widget.config(foreground="black")
 
