@@ -281,14 +281,20 @@ class MatrixCalculator:
     def add(self):
         A, B = self.get_matrix(self.entries1), self.get_matrix(self.entries2)
         if A is not None and B is not None:
-            result = A + B
-            self.show_result(result)
+            try:
+                result = A + B
+                self.show_result(result)
+            except ValueError:
+                messagebox.showerror("Error", "Dimension Error")
 
     def sub(self):
         A, B = self.get_matrix(self.entries1), self.get_matrix(self.entries2)
         if A is not None and B is not None:
-            result = A - B
-            self.show_result(result)
+            try:
+                result = A + B
+                self.show_result(result)
+            except ValueError:
+                messagebox.showerror("Error", "Dimension Error")
 
     def mul(self):
         A, B = self.get_matrix(self.entries1), self.get_matrix(self.entries2)
