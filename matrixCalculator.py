@@ -385,7 +385,11 @@ class MatrixCalculator:
     def rank(self):
         A = self.get_matrix(self.entries1)
         if A is not None:
-            self.show_result(np.linalg.matrix_rank(A), store=False)
+            try:
+                rank_value = np.linalg.matrix_rank(A)
+                self.show_result(f"{rank_value}", store=False)
+            except Exception as e:
+                print(f"Error: {e}")
     
     def mul_factor(self):
         A = self.get_matrix(self.entries1)
