@@ -385,7 +385,7 @@ class MatrixCalculator:
     def rank(self):
         A = self.get_matrix(self.entries1)
         if A is not None:
-            self.show_result(np.linalg.matrix_rank(A))
+            self.show_result(np.linalg.matrix_rank(A), store=False)
     
     def mul_factor(self):
         A = self.get_matrix(self.entries1)
@@ -410,14 +410,61 @@ class MatrixCalculator:
     
     def row_echelon(self):
         A = self.get_matrix(self.entries1)
+
         if A is not None:
-            self.show_result(np.linalg.qr(A)[1])
-    
+            A = A.astype(float)  # 轉換為浮點數，避免整數運算問題
+            rows, cols = A.shape
+            pivot_row = 0
+
+            for col in range(cols):
+                if pivot_row >= rows:
+                    break
+                
+                nonzero_rows = np.where(A[pivot_row:, col] != 0)[0]
+                if len(nonzero_rows) == 0:
+                    continue
+
+                first_nonzero_row = pivot_row + nonzero_rows[0]
+                A[[pivot_row, first_nonzero_row]] = A[[first_nonzero_row, pivot_row]]
+
+                for r in range(pivot_row + 1, rows):
+                    factor = A[r, col] / A[pivot_row, col]
+                    A[r] -= factor * A[pivot_row]
+
+                pivot_row += 1
+
+        A = np.where(np.abs(A) < 1e-10, 0, A)
+        self.show_result(A)
+
     def diagonal(self):
         A = self.get_matrix(self.entries1)
+        if A.shape[0] != A.shape[1]:  
+            messagebox.showerror("Error", "This matrix must be square.")
+            return
+    
         if A is not None:
-            diag_matrix = np.diag(np.diag(A))
-            self.show_result(diag_matrix)
+            try:
+                # Compute the eigenvalues and eigenvectors
+                eigenvalues, eigenvectors = np.linalg.eig(A)
+
+                # Create the diagonal matrix D (containing eigenvalues)
+                D = np.diag(eigenvalues)
+                P = eigenvectors
+                P_inv = np.linalg.inv(P)
+
+                result_text = "P inverse:\n"
+                result_text += "\n".join(["  ".join(f"{val:.2f}" for val in row) for row in P_inv]) + "\n\n"
+
+                result_text += "D (Diagnal Matrix):\n"
+                result_text += "\n".join(["  ".join(f"{val:.2f}" for val in row) for row in D]) + "\n\n"
+
+                result_text += "P (Eigenvector Matrix):\n"
+                result_text += "\n".join(["  ".join(f"{val:.2f}" for val in row) for row in P])
+
+                self.show_result(result_text, store=False)
+
+            except Exception as e:
+                messagebox.showerror("Error", f"Diagonalization failed: {str(e)}")
     
     def lu_decomposition(self):
         A = self.get_matrix(self.entries1)
@@ -433,7 +480,7 @@ class MatrixCalculator:
                 result_text += "U (Upper Triangular Matrix):\n"
                 result_text += "\n".join(["  ".join(f"{val:.2f}" for val in row) for row in U])
 
-                self.show_result(result_text, store=False)  # 禁用 store 按鈕
+                self.show_result(result_text, store=False)
             except Exception as e:
                 messagebox.showerror("Error", f"LU decomposition failed: {e}")
     
@@ -449,7 +496,7 @@ class MatrixCalculator:
                 for i, vec in enumerate(vectors.T):
                     result_text += f"v{i+1} = [" + "  ".join(f"{val:.4f}" for val in vec) + "]\n"
 
-                self.show_result(result_text, store=False)  # 禁用 store 按鈕
+                self.show_result(result_text, store=False) 
             except np.linalg.LinAlgError:
                 messagebox.showerror("Error", "Eigen decomposition failed.")
         else:
